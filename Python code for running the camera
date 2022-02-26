@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+import picamera
+from subprocess import call
+from datetime import datetime
+from time import sleep
+
+filePath = "/home/pi/Pictures/"
+picTotal = 50000
+picCount = 0
+
+while picCount < picTotal:
+    # Define the current time
+    currentTime = datetime.now()
+    # Create file name for the picture
+    picTime = currentTime.strftime("%Y.%m.%d-%H%M%S")
+    picName = picTime + '.jpg'
+    completeFilePath = filePath + picName
+
+    # Take picture using new filepath
+    with picamera.PiCamera() as camera:
+        camera.resolution = (2592,1944)
+        camera.capture(completeFilePath)
+        print("Picture taken.")
+
+    # Advance our picture counter
+    picCount += 1
+    sleep(10)
