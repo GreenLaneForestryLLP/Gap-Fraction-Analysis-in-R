@@ -1,0 +1,80 @@
+# This uses the local area thresholding from imagerExtra
+# Needs ghostscript installed on PC
+# Load packages
+require(imager)
+require(imagerExtra)
+require(lubridate) 
+require(compiler)
+
+# Set location of ghostscript executable (only needs to be done once)
+Sys.setenv(R_GSCMD="C:/Program Files/gs/gs9.55.0/bingswin64c.exe") 
+
+# Note, the following should be in the directory (along with the .jpg files)
+# LAICAM.exe
+# call-GFA.bat
+# GFA-WIN.exe
+
+# Set working directory
+setwd("U:/RPI Project/Working Directory")
+
+
+img1 <- load.image("1.jpg")
+
+imager::display(img1)
+
+# List files
+allPics <- list.files(pattern = ".jpg")
+# allPics<- list.files(pattern = "-07|-09|-12|-16")
+
+# Define function to rotate, pad and greyscale using imager
+rotate_imgs <- function(allPics, x) {
+  for(x in seq_along(allPics)) {
+    filename <- allPics[x]
+  blueChan <- B(load.image(allPics[x]))
+  wind17 <- ThresholdAdaptive(blueChan, 0, range = c(0,1), windowsize = 17)
+  wind201 <- ThresholdAdaptive(blueChan, 0, range = c(0,1), windowsize = 201)
+  comb <- threshold((wind17 + wind201), 1) 
+  rotImg <- imrotate(comb, 68) 
+  bitmap(file=paste("out_",substring(filename, 1, 10),".", substring(filename, 12,17), ".bmp", sep =    ""), width=4147, height=3888, units="px", type = "bmpmono")
+  plot(rotImg, axes = F)
+  dev.off()
+}
+}
+
+# Use function to produce output
+start.time <- Sys.time()
+rotate_imgs((allPics[1:5000]))
+end.time <- Sys.time()
+end.time - start.time
+# Note  - it is necessary to convert the .bmp images to 8-bit using ImageJ at the point #
+
+### GFA (gap fraction analysis)
+# write batch script
+bmp.list <- list.files(pattern = ".bmp")
+batch.list <- paste("call call-GFA.bat", substring(bmp.list, 1, 21), "c", sep=" ")
+write.table(batch.list, file = "batch.bat", row.names = F, col.names = F, quote = F)
+
+# run batch files
+shell("batch.bat")
+
+### LAICAM (leaf area index) - make sure parameter.txt file is not in the directory
+# write batch script
+
+txt.list <- list.files(pattern = ".txt")
+batch.list.txt <- paste("LAICAM parameter.txt", txt.list, "gf_result_file.txt", sep=" ")
+write.table(batch.list.txt, file = "processing_list.bat", row.names = F, col.names = F, quote = F)
+
+# Write parameter.txt file
+params <- c("0", "0", "0", "0", "0", "0.0", "0.0", "0.0", "0.0", "1") 
+# see laicam.pdf for explanation of these parameters
+
+write.table(params, file = "parameter.txt", row.names = F, col.names = F, quote = F)
+
+# run batch file
+shell("processing_list.bat")
+
+# Read results
+gf_heads <- c("Progr.Name","Data.file.name", "Slope", "Aspect", "Ref", "Z_ann", "H_ann","LeafR", "LeafT",	"SoilR", "Lsat", "EC", "EG", "ST", "CI.LX", "SO", "CO", "CC", "Le", "X", "Err","A", "Lsl","Lsh","Ke","Kb.i","FC","FS")
+              gf_results <- read.table("gf_result_file.txt", header = F, col.names = gf_heads)
+              
+              # End
