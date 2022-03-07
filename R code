@@ -7,7 +7,7 @@ require(lubridate)
 require(compiler)
 
 # Set location of ghostscript executable (only needs to be done once)
-Sys.setenv(R_GSCMD="C:/Program Files/gs/gs9.55.0/bingswin64c.exe") 
+Sys.setenv(R_GSCMD="C:/Program Files/gs/gs9.55.0/bin/gswin64c.exe") 
 
 # Note, the following should be in the directory (along with the .jpg files)
 # LAICAM.exe
