@@ -18,9 +18,6 @@ Sys.setenv(R_GSCMD="C:/Program Files/gs/gs9.55.0/bin/gswin64c.exe")
 setwd("U:/RPI Project/Working Directory")
 
 
-img1 <- load.image("1.jpg")
-
-imager::display(img1)
 
 # List files
 allPics <- list.files(pattern = ".jpg")
@@ -31,10 +28,10 @@ rotate_imgs <- function(allPics, x) {
   for(x in seq_along(allPics)) {
     filename <- allPics[x]
   blueChan <- B(load.image(allPics[x]))
-  wind17 <- ThresholdAdaptive(blueChan, 0, range = c(0,1), windowsize = 17)
   wind201 <- ThresholdAdaptive(blueChan, 0, range = c(0,1), windowsize = 201)
+  wind17 <- ThresholdAdaptive(blueChan, 0, range = c(0,1), windowsize = 17)
   comb <- threshold((wind17 + wind201), 1) 
-  rotImg <- imrotate(comb, 68) 
+  rotImg <- imrotate(comb, 3) 
   bitmap(file=paste("out_",substring(filename, 1, 10),".", substring(filename, 12,17), ".bmp", sep =    ""), width=4147, height=3888, units="px", type = "bmpmono")
   plot(rotImg, axes = F)
   dev.off()
